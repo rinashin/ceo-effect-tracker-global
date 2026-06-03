@@ -142,6 +142,69 @@
   .chart-wrapper { position:relative; width:100%; height:230px; }
 
   .footer { padding:22px 40px; border-top:1px solid var(--border); text-align:center; font-size:11px; color:var(--text3); }
+
+  /* ── MOBILE (≤480px) ── */
+  @media (max-width: 480px) {
+    .hero { padding:36px 20px 28px; }
+    .hero h1 { font-size:28px; }
+    .hero p { font-size:13px; }
+    .main { padding:20px 16px; }
+
+    /* stats: 1열 */
+    .stats-grid { grid-template-columns:1fr; gap:8px; margin-bottom:20px; }
+    .stat-card { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
+    .stat-label { margin-bottom:0; font-size:12px; }
+    .stat-value { font-size:22px; }
+    .stat-sub { display:none; }
+
+    /* person chips: 가로 스크롤 */
+    .person-chips { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .person-chips::-webkit-scrollbar { display:none; }
+    .person-chip { white-space:nowrap; flex-shrink:0; padding:6px 12px; font-size:12px; }
+
+    /* tabs: 균등 분할 */
+    .tab-bar { gap:0; }
+    .tab-btn { flex:1; padding:10px 4px; font-size:12px; text-align:center; }
+
+    /* event card: 2열 → 세로 스택 */
+    .event-card { grid-template-columns:1fr auto; grid-template-rows:auto auto; gap:8px; padding:14px; }
+    .event-date { grid-column:1; grid-row:1; font-size:11px; padding-top:0; }
+    .change-box { grid-column:2; grid-row:1; }
+    .event-card > div:nth-child(2) { grid-column:1/3; grid-row:2; }
+    .event-card:hover { transform:none; }
+    .change-val { font-size:16px; }
+
+    /* stock table: 맥락 컬럼 숨김, 패딩 줄임 */
+    .stock-table th:nth-child(5),
+    .stock-table td:nth-child(5) { display:none; }
+    .stock-table th:nth-child(4),
+    .stock-table td:nth-child(4) { display:none; }
+    .stock-table td { padding:10px 8px; font-size:12px; }
+    .stock-table th { padding:0 8px 10px; font-size:10px; }
+    .chart-box { padding:14px; }
+
+    /* chart */
+    .chart-wrapper { height:200px; }
+
+    .footer { padding:18px 16px; }
+  }
+
+  /* ── TABLET (481~768px) ── */
+  @media (min-width:481px) and (max-width:768px) {
+    .hero { padding:44px 24px 32px; }
+    .hero h1 { font-size:34px; }
+    .main { padding:24px 24px; }
+    .stats-grid { grid-template-columns:repeat(3,1fr); gap:10px; }
+    .stat-value { font-size:22px; }
+    .person-chips { flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .person-chips::-webkit-scrollbar { display:none; }
+    .person-chip { white-space:nowrap; flex-shrink:0; }
+    .event-card { grid-template-columns:70px 1fr auto; gap:10px; }
+    .stock-table th:nth-child(5),
+    .stock-table td:nth-child(5) { display:none; }
+    .stock-table td { padding:10px; font-size:12px; }
+    .footer { padding:18px 24px; }
+  }
 </style>
 </head>
 <body>
