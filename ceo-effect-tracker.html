@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEO Effect Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg:#0a0a0a; --bg2:#111111; --bg3:#1a1a1a;
+    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.15);
+    --text:#f0f0f0; --text2:#888; --text3:#555;
+    --green:#00d084; --red:#ff4d4d; --accent:#c8ff00;
+    --jensen:#60a5fa;   --jensen-bg:rgba(96,165,250,0.12);
+    --trump:#fb923c;    --trump-bg:rgba(251,146,60,0.12);
+    --masa:#a78bfa;     --masa-bg:rgba(167,139,250,0.12);
+    --musk:#f472b6;     --musk-bg:rgba(244,114,182,0.12);
+    --powell:#fbbf24;   --powell-bg:rgba(251,191,36,0.12);
+    --altman:#34d399;   --altman-bg:rgba(52,211,153,0.12);
+    --lisa:#e879f9;     --lisa-bg:rgba(232,121,249,0.12);
+    --buffett:#a3e635;  --buffett-bg:rgba(163,230,53,0.12);
+    --jaeyong:#ff8c69;  --jaeyong-bg:rgba(255,140,105,0.12);
+    --taewon:#5eead4;   --taewon-bg:rgba(94,234,212,0.12);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+
+  /* HERO */
+  .hero { padding:56px 40px 36px; border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:-100px; left:-100px; width:400px; height:400px; background:radial-gradient(circle,rgba(200,255,0,0.04) 0%,transparent 70%); pointer-events:none; }
+  .hero-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(200,255,0,0.08); border:1px solid rgba(200,255,0,0.2); color:var(--accent); font-size:11px; font-weight:500; letter-spacing:0.08em; padding:4px 12px; border-radius:20px; margin-bottom:18px; }
+  .hero-tag::before { content:'●'; font-size:8px; animation:blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero h1 { font-family:'Syne',sans-serif; font-size:40px; font-weight:700; line-height:1.1; margin-bottom:10px; background:linear-gradient(135deg,#f0f0f0 60%,#888); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero p { font-size:14px; color:var(--text2); max-width:520px; line-height:1.6; }
+
+  /* MAIN */
+  .main { padding:28px 40px; max-width:1100px; margin:0 auto; }
+
+  /* STATS */
+  .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:28px; }
+  .stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:18px 20px; transition:border-color 0.2s; }
+  .stat-card:hover { border-color:var(--border2); }
+  .stat-label { font-size:11px; color:var(--text3); letter-spacing:0.06em; margin-bottom:6px; }
+  .stat-value { font-family:'Syne',sans-serif; font-size:26px; font-weight:600; color:var(--accent); }
+  .stat-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+  /* PERSON FILTER SECTION */
+  .person-section { margin-bottom:24px; }
+  .region-label { font-size:11px; font-weight:600; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px; }
+  .person-chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .person-chip { display:flex; align-items:center; gap:7px; padding:7px 14px; border-radius:24px; border:1px solid var(--border); background:transparent; font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; color:var(--text2); transition:all 0.15s; }
+  .person-chip:hover { border-color:var(--border2); color:var(--text); }
+  .person-chip.active { font-weight:500; }
+  .chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .chip-all { color:var(--text2); }
+  .chip-all.active { background:var(--bg3); border-color:var(--border2); color:var(--text); }
+
+  .chip-jensen.active  { background:var(--jensen-bg);  border-color:var(--jensen);  color:var(--jensen);  }
+  .chip-trump.active   { background:var(--trump-bg);   border-color:var(--trump);   color:var(--trump);   }
+  .chip-masa.active    { background:var(--masa-bg);    border-color:var(--masa);    color:var(--masa);    }
+  .chip-musk.active    { background:var(--musk-bg);    border-color:var(--musk);    color:var(--musk);    }
+  .chip-powell.active  { background:var(--powell-bg);  border-color:var(--powell);  color:var(--powell);  }
+  .chip-altman.active  { background:var(--altman-bg);  border-color:var(--altman);  color:var(--altman);  }
+  .chip-lisa.active    { background:var(--lisa-bg);    border-color:var(--lisa);    color:var(--lisa);    }
+  .chip-buffett.active { background:var(--buffett-bg); border-color:var(--buffett); color:var(--buffett); }
+  .chip-jaeyong.active { background:var(--jaeyong-bg); border-color:var(--jaeyong); color:var(--jaeyong); }
+  .chip-taewon.active  { background:var(--taewon-bg);  border-color:var(--taewon);  color:var(--taewon);  }
+
+  .divider-line { border:none; border-top:1px solid var(--border); margin:12px 0; }
+
+  /* CONTENT TABS */
+  .tab-bar { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:20px; }
+  .tab-btn { padding:8px 18px; background:transparent; border:none; border-bottom:2px solid transparent; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text2); cursor:pointer; transition:all 0.15s; margin-bottom:-1px; }
+  .tab-btn:hover { color:var(--text); }
+  .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:500; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* TIMELINE */
+  .timeline { display:flex; flex-direction:column; gap:8px; }
+  .event-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:15px 17px; display:grid; grid-template-columns:85px 1fr auto; gap:14px; align-items:start; transition:all 0.18s; }
+  .event-card:hover { border-color:var(--border2); background:var(--bg3); transform:translateX(2px); }
+  .new-badge { display:inline-block; font-size:10px; font-weight:600; background:var(--accent); color:#000; padding:1px 6px; border-radius:4px; margin-left:6px; vertical-align:middle; }
+  .event-date { font-size:11px; color:var(--text3); padding-top:3px; line-height:1.5; }
+  .person-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; padding:3px 9px; border-radius:10px; margin-bottom:7px; }
+  .badge-jensen  { background:var(--jensen-bg);  color:var(--jensen);  }
+  .badge-trump   { background:var(--trump-bg);   color:var(--trump);   }
+  .badge-masa    { background:var(--masa-bg);    color:var(--masa);    }
+  .badge-musk    { background:var(--musk-bg);    color:var(--musk);    }
+  .badge-powell  { background:var(--powell-bg);  color:var(--powell);  }
+  .badge-altman  { background:var(--altman-bg);  color:var(--altman);  }
+  .badge-lisa    { background:var(--lisa-bg);    color:var(--lisa);    }
+  .badge-buffett { background:var(--buffett-bg); color:var(--buffett); }
+  .badge-jaeyong { background:var(--jaeyong-bg); color:var(--jaeyong); }
+  .badge-taewon  { background:var(--taewon-bg);  color:var(--taewon);  }
+  .event-title { font-size:14px; font-weight:500; color:var(--text); margin-bottom:4px; line-height:1.4; }
+  .event-desc { font-size:12px; color:var(--text2); line-height:1.6; }
+  .event-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:8px; }
+  .etag { font-size:10px; padding:2px 7px; border-radius:4px; border:1px solid var(--border); color:var(--text3); font-family:monospace; }
+  .change-box { text-align:right; padding-top:2px; }
+  .change-val { font-family:'Syne',sans-serif; font-size:18px; font-weight:600; }
+  .up { color:var(--green); } .down { color:var(--red); }
+  .change-period { font-size:10px; color:var(--text3); margin-top:3px; }
+  .year-divider { font-size:11px; font-weight:600; color:var(--text3); letter-spacing:0.1em; padding:8px 0 4px; border-top:1px solid var(--border); margin-top:4px; }
+  .empty-state { text-align:center; padding:40px 0; color:var(--text3); font-size:13px; }
+
+  /* STOCK TABLE */
+  .chart-box { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; }
+  .stock-table { width:100%; border-collapse:collapse; }
+  .stock-table thead tr { border-bottom:1px solid var(--border2); }
+  .stock-table th { font-size:11px; color:var(--text3); font-weight:500; letter-spacing:0.06em; text-align:left; padding:0 12px 10px; }
+  .stock-table th:nth-child(3), .stock-table td:nth-child(3),
+  .stock-table th:nth-child(4), .stock-table td:nth-child(4) { text-align:right; }
+  .stock-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.12s; }
+  .stock-table tbody tr:hover { background:var(--bg3); }
+  .stock-table tbody tr:last-child { border-bottom:none; }
+  .stock-table td { padding:12px; font-size:13px; color:var(--text); vertical-align:middle; }
+  .stock-name { font-weight:500; }
+  .stock-ticker { font-family:monospace; font-size:11px; color:var(--text3); margin-top:2px; }
+  .ptag { display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:2px 8px; border-radius:8px; }
+  .ptag-jensen  { background:var(--jensen-bg);  color:var(--jensen);  }
+  .ptag-trump   { background:var(--trump-bg);   color:var(--trump);   }
+  .ptag-masa    { background:var(--masa-bg);    color:var(--masa);    }
+  .ptag-musk    { background:var(--musk-bg);    color:var(--musk);    }
+  .ptag-powell  { background:var(--powell-bg);  color:var(--powell);  }
+  .ptag-altman  { background:var(--altman-bg);  color:var(--altman);  }
+  .ptag-lisa    { background:var(--lisa-bg);    color:var(--lisa);    }
+  .ptag-buffett { background:var(--buffett-bg); color:var(--buffett); }
+  .ptag-jaeyong { background:var(--jaeyong-bg); color:var(--jaeyong); }
+  .ptag-taewon  { background:var(--taewon-bg);  color:var(--taewon);  }
+  .chg-up { color:var(--green); font-family:'Syne',sans-serif; font-weight:600; }
+  .chg-down { color:var(--red); font-family:'Syne',sans-serif; font-weight:600; }
+  .ctx { font-size:12px; color:var(--text2); line-height:1.5; }
+
+  /* CHART */
+  .legend { display:flex; gap:14px; font-size:11px; color:var(--text2); margin-bottom:10px; }
+  .legend span { display:flex; align-items:center; gap:5px; }
+  .ldot { width:10px; height:10px; border-radius:2px; }
+  .chart-wrapper { position:relative; width:100%; height:230px; }
+
+  .footer { padding:22px 40px; border-top:1px solid var(--border); text-align:center; font-size:11px; color:var(--text3); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-tag">LIVE TRACKER</div>
+  <h1>CEO Effect<br>Tracker</h1>
+  <p>젠슨 황, 트럼프, 머스크, 파월… 그들의 한마디가 시장을 움직인다.<br>발언·방문 이벤트와 주가 변동을 한눈에.</p>
+</div>
+
+<div class="main">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">평균 주가 변동</div>
+      <div class="stat-value" id="stat-avg">—</div>
+      <div class="stat-sub">이벤트 후 평균</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">최대 단일 이벤트</div>
+      <div class="stat-value" id="stat-max">—</div>
+      <div class="stat-sub" id="stat-max-sub">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">추적 이벤트</div>
+      <div class="stat-value" id="stat-count">—</div>
+      <div class="stat-sub">2025~2026년</div>
+    </div>
+  </div>
+
+  <!-- PERSON FILTER -->
+  <div class="person-section">
+    <div class="region-label">🌏 해외 인물</div>
+    <div class="person-chips" id="chips-global">
+      <button class="person-chip chip-all active" data-person="all" onclick="filterPerson('all',this)">
+        <span class="chip-dot" style="background:var(--text3)"></span>전체
+      </button>
+      <button class="person-chip chip-jensen" data-person="jensen" onclick="filterPerson('jensen',this)">
+        <span class="chip-dot" style="background:var(--jensen)"></span>젠슨 황
+      </button>
+      <button class="person-chip chip-trump" data-person="trump" onclick="filterPerson('trump',this)">
+        <span class="chip-dot" style="background:var(--trump)"></span>트럼프
+      </button>
+      <button class="person-chip chip-masa" data-person="masa" onclick="filterPerson('masa',this)">
+        <span class="chip-dot" style="background:var(--masa)"></span>손정의
+      </button>
+      <button class="person-chip chip-musk" data-person="musk" onclick="filterPerson('musk',this)">
+        <span class="chip-dot" style="background:var(--musk)"></span>일론 머스크
+      </button>
+      <button class="person-chip chip-powell" data-person="powell" onclick="filterPerson('powell',this)">
+        <span class="chip-dot" style="background:var(--powell)"></span>제롬 파월
+      </button>
+      <button class="person-chip chip-altman" data-person="altman" onclick="filterPerson('altman',this)">
+        <span class="chip-dot" style="background:var(--altman)"></span>샘 알트만
+      </button>
+      <button class="person-chip chip-lisa" data-person="lisa" onclick="filterPerson('lisa',this)">
+        <span class="chip-dot" style="background:var(--lisa)"></span>리사 수
+      </button>
+      <button class="person-chip chip-buffett" data-person="buffett" onclick="filterPerson('buffett',this)">
+        <span class="chip-dot" style="background:var(--buffett)"></span>워런 버핏
+      </button>
+    </div>
+    <hr class="divider-line">
+    <div class="region-label">🇰🇷 국내 인물</div>
+    <div class="person-chips" id="chips-kr">
+      <button class="person-chip chip-jaeyong" data-person="jaeyong" onclick="filterPerson('jaeyong',this)">
+        <span class="chip-dot" style="background:var(--jaeyong)"></span>이재용
+      </button>
+      <button class="person-chip chip-taewon" data-person="taewon" onclick="filterPerson('taewon',this)">
+        <span class="chip-dot" style="background:var(--taewon)"></span>최태원
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('timeline',this)">이벤트 타임라인</button>
+    <button class="tab-btn" onclick="switchTab('stocks',this)">종목별 영향</button>
+    <button class="tab-btn" onclick="switchTab('chart',this)">변동률 차트</button>
+  </div>
+
+  <!-- TAB: TIMELINE -->
+  <div class="tab-panel active" id="tab-timeline">
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <!-- TAB: STOCKS -->
+  <div class="tab-panel" id="tab-stocks">
+    <div class="chart-box">
+      <table class="stock-table" id="stock-table">
+        <thead>
+          <tr>
+            <th>종목</th>
+            <th>언급 인물</th>
+            <th>변동률</th>
+            <th>기간</th>
+            <th>맥락</th>
+          </tr>
+        </thead>
+        <tbody id="stock-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: CHART -->
+  <div class="tab-panel" id="tab-chart">
+    <div class="legend">
+      <span><span class="ldot" style="background:#00d084"></span>상승</span>
+      <span><span class="ldot" style="background:#ff4d4d"></span>하락</span>
+      <span style="color:var(--text3);font-size:11px;">* 광전자 +447%는 스케일상 별도 표기</span>
+    </div>
+    <div class="chart-box">
+      <div class="chart-wrapper">
+        <canvas id="barChart" role="img" aria-label="종목별 주가 변동률 막대 차트">종목별 이벤트 후 주가 변동률</canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">데이터는 언론 보도 기반이며 실제 투자 판단에 활용하지 마세요. · CEO Effect Tracker MVP</div>
+
+<script>
+const personMeta = {
+  jensen:  { label:'젠슨 황',   region:'global' },
+  trump:   { label:'트럼프',    region:'global' },
+  masa:    { label:'손정의',    region:'global' },
+  musk:    { label:'일론 머스크', region:'global' },
+  powell:  { label:'제롬 파월', region:'global' },
+  altman:  { label:'샘 알트만', region:'global' },
+  lisa:    { label:'리사 수',   region:'global' },
+  buffett: { label:'워런 버핏', region:'global' },
+  jaeyong: { label:'이재용',    region:'kr' },
+  taewon:  { label:'최태원',    region:'kr' },
+};
+
+const events = [
+  // ── 2026 ──
+  { isNew:true,  person:'jensen',  date:'2026.06.05', title:'젠슨 황 방한 — LG·네이버·SK·현대차 총수 연쇄 회동', desc:'GTC 타이베이를 마친 젠슨 황이 방한. 구광모 LG 회장, 최태원 SK 회장, 정의선 현대차 회장과 피지컬 AI 협력 논의. 방한 확정 발표만으로 LG전자 +29.9% 상한가, 네이버 이틀 연속 14%대 급등.', tags:['LG전자','NAVER','SKHynix','현대차'], change:+29.9, period:'당일' },
+  { isNew:true,  person:'jensen',  date:'2026.06.02', title:'컴퓨텍스 2026 · GTC 타이베이 — AI PC 시대 선언', desc:'"40년 만에 PC를 완전히 재발명" 선언. SK하이닉스 부스에 친필 사인, 삼성디스플레이 OLED에도 사인 남겨. SK하이닉스 한 주 +20.2%, 삼성전자 +8.4%.', tags:['SKHynix','삼성전자','TSM','NVDA'], change:+20.2, period:'5거래일' },
+  { isNew:true,  person:'taewon',  date:'2026.06.02', title:'최태원 SK 회장, 컴퓨텍스서 젠슨 황과 회동', desc:'최태원 회장이 대만 컴퓨텍스 2026 현장에서 젠슨 황과 단체 사진 촬영. HBM4E 웨이퍼 협력 확인. SK하이닉스 한 주간 +20.2% 급등.', tags:['SKHynix','SK텔레콤','SK스퀘어'], change:+20.2, period:'5거래일' },
+  { isNew:true,  person:'trump',   date:'2026.05.23', title:'이란 종전 MOU "대체로 협상됐다" — 유가 급락', desc:'60일 휴전·호르무즈 해협 재개방 기대감. 브렌트유 5월 한 달 -20%, WTI -17%. 에너지주 하락, 항공·운송주 반등.', tags:['WTI유가','항공주','에너지주'], change:-17.0, period:'월간 유가' },
+  { isNew:true,  person:'musk',    date:'2026.01.06', title:'머스크 "2026은 특이점의 해" X 포스팅', desc:'머스크가 X에 "우리는 특이점에 진입했다. 2026년은 특이점의 해"라고 선언. xAI·테슬라 관련주 단기 반응. 테슬라 최근 1년 +44% 상승 구간.', tags:['TSLA','xAI','AI특이점'], change:+5.8, period:'당일' },
+  { isNew:true,  person:'powell',  date:'2026.03.19', title:'파월 FOMC 금리 동결 — "인하 서두르지 않겠다"', desc:'3월 FOMC에서 금리 동결 결정. 파월이 "금리 인하를 서두르지 않겠다"고 명확히 하며 기술주 중심 변동성 확대. 나스닥 단기 하락.', tags:['S&P500','나스닥','국채금리'], change:-1.8, period:'당일' },
+  { isNew:true,  person:'trump',   date:'2026.04.02', title:'이란 강경 발언 — 코스피 4.47% 급락', desc:'트럼프의 이란 강경 군사 발언으로 코스피 244p(-4.47%) 폭락, 코스닥 -5.36%. 원/달러 환율 20원 급등.', tags:['코스피','코스닥','원달러'], change:-4.5, period:'당일' },
+  { isNew:true,  person:'jensen',  date:'2026.03.17', title:'GTC 2026 — 광반도체를 미래 핵심 기술로 지목', desc:'젠슨 황이 광반도체를 미래 핵심 기술로 공개 지목. 광전자 +447%(1,925원→1만530원) 폭등. 광통신 관련주 전반 급등.', tags:['광전자','광통신','NVDA'], change:+447, period:'이후 누적' },
+  { isNew:true,  person:'altman',  date:'2026.02.10', title:'샘 알트만 GPT-5 출시 발표 — MS·NVDA 동반 상승', desc:'OpenAI GPT-5 출시를 공식 발표. AI 추론 수요 폭증 기대로 마이크로소프트 +6.2%, 엔비디아 +4.8% 동반 급등.', tags:['MSFT','NVDA','OpenAI'], change:+6.2, period:'당일' },
+  // ── 2025 ──
+  { isNew:false, person:'trump',   date:'2025.05.13', title:'사우디 방문 — NVIDIA·Humain AI 계약 체결', desc:'트럼프 사우디 국빈 방문 중 엔비디아가 Humain과 수백만 개 GPU 공급 계약.', tags:['NVDA','SMCI','중동AI'], change:+14.2, period:'2거래일' },
+  { isNew:false, person:'masa',    date:'2025.04.07', title:'손정의 트럼프 방문 — 1000억달러 투자 재확인', desc:'소프트뱅크 회장이 백악관 방문, 미국 AI·반도체 대규모 투자 계획 공식 재확인.', tags:['ARM','SoftBank','AI투자'], change:+9.1, period:'5거래일' },
+  { isNew:false, person:'trump',   date:'2025.02.11', title:'반도체 관세 언급 — 공급망 리스크 우려', desc:'반도체 수입품 추가 관세 가능성 언급. 공급망 리스크 우려로 반도체주 단기 하락.', tags:['TSM','INTC','삼성전자'], change:-6.4, period:'3거래일' },
+  { isNew:false, person:'trump',   date:'2025.01.20', title:'취임 첫날 — 스타게이트 프로젝트 발표', desc:'500억달러 AI 인프라 투자 발표. OpenAI·소프트뱅크·오라클 참여로 AI 인프라주 급등.', tags:['ORCL','MSFT','NVDA'], change:+7.2, period:'3거래일' },
+  { isNew:false, person:'jensen',  date:'2025.03.18', title:'GTC 2025 기조연설 — 블랙웰 울트라 공개', desc:'"추론이 새로운 훈련이다" 발언으로 AI 인프라 수요 폭발 예고.', tags:['NVDA','AI인프라','GPU'], change:+18.7, period:'5거래일' },
+  { isNew:false, person:'jensen',  date:'2025.01.06', title:'CES 2025 기조연설 — RTX 50 시리즈 발표', desc:'RTX 5090 공개, AI PC 시대 선언. 게이밍·크리에이터 수요 기대감 상승.', tags:['NVDA','AMD','INTC'], change:+5.3, period:'3거래일' },
+  { isNew:false, person:'musk',    date:'2025.11.06', title:'테슬라 주총 — 성과 보상안 75% 찬성 통과', desc:'머스크 1조달러 규모 성과 연동 지분 보상안이 75% 찬성으로 통과. 스페이스X IPO 가능성 언급으로 테슬라 주가 급등.', tags:['TSLA','SpaceX'], change:+12.4, period:'당일' },
+  { isNew:false, person:'powell',  date:'2025.08.22', title:'파월 잭슨홀 연설 — 9월 금리인하 시사', desc:'파월이 잭슨홀에서 금리 인하 가능성을 시사. S&P500 +3.73%, 나스닥 +4.91% 급등.', tags:['S&P500','나스닥','채권'], change:+4.9, period:'당일' },
+  { isNew:false, person:'lisa',    date:'2025.06.03', title:'리사 수 AMD 컴퓨텍스 — MI350 AI 칩 공개', desc:'AMD CEO 리사 수가 컴퓨텍스에서 엔비디아 대항마 MI350 공개. AMD +9.3%, AI 칩 경쟁 구도 재편 기대.', tags:['AMD','NVDA','AI칩'], change:+9.3, period:'당일' },
+  { isNew:false, person:'buffett', date:'2025.05.03', title:'버크셔 주주총회 — 애플 보유 유지 발언', desc:'버핏이 연례 주주총회에서 애플 지분 유지 의사를 재확인. AAPL 단기 +3.1%, 버크셔 BRK +2.4%.', tags:['AAPL','BRK','가치주'], change:+3.1, period:'당일' },
+  { isNew:false, person:'altman',  date:'2025.09.15', title:'샘 알트만 o3 모델 발표 — AI 추론 혁신 선언', desc:'OpenAI o3 모델 공개, "인간 수준 추론 돌파" 선언. MSFT +5.1%, NVDA +4.2% 동반 급등.', tags:['MSFT','NVDA','OpenAI'], change:+5.1, period:'당일' },
+  { isNew:false, person:'jaeyong', date:'2025.10.30', title:'이재용 APEC CEO 서밋 — 젠슨황·트럼프와 회동', desc:'경주 APEC에서 이재용 회장이 젠슨 황, 트럼프와 잇달아 회동. 삼성전자·삼성SDI 등 삼성 계열주 동반 급등.', tags:['삼성전자','삼성SDI','삼성SDS'], change:+8.5, period:'3거래일' },
+  { isNew:false, person:'taewon',  date:'2025.10.29', title:'최태원 APEC — 젠슨 황과 HBM 파트너십 강조', desc:'경주 APEC에서 최태원 회장이 젠슨 황과 공개 회동. HBM 공급 협력 재확인으로 SK하이닉스 +11.3% 급등.', tags:['SKHynix','SK텔레콤','HBM'], change:+11.3, period:'3거래일' },
+];
+
+const stockRows = [
+  { name:'LG전자',    ticker:'066570', person:'jensen',  change:+29.9, period:'당일',     ctx:'방한 중 구광모 LG 회장과 피지컬 AI 협력 논의 → 상한가' },
+  { name:'SKHynix',   ticker:'000660', person:'jensen',  change:+20.2, period:'5거래일',  ctx:'컴퓨텍스 부스에 "더 많이 만들어 주세요" 친필 사인 → HBM 수요 기대' },
+  { name:'NVDA',      ticker:'NASDAQ', person:'jensen',  change:+18.7, period:'5거래일',  ctx:'GTC 2025 — 블랙웰 울트라 공개, AI 인프라 수요 폭발' },
+  { name:'NAVER',     ticker:'035420', person:'jensen',  change:+14.2, period:'이틀',     ctx:'방한 중 사옥 방문·AI 협력 기대감으로 이틀 연속 14%대 급등' },
+  { name:'두산로보틱스',ticker:'454910',person:'jensen',  change:+15.0, period:'단기',     ctx:'방한 관련주, 피지컬 AI·협동로봇 협력 기대감 반영' },
+  { name:'삼성전자',  ticker:'005930', person:'jensen',  change:+8.4,  period:'5거래일',  ctx:'컴퓨텍스 — 삼성디스플레이 OLED에 친필 사인, 협력 기대' },
+  { name:'삼성전자',  ticker:'005930', person:'jaeyong', change:+8.5,  period:'3거래일',  ctx:'APEC에서 젠슨 황·트럼프와 회동 → 삼성 계열주 동반 상승' },
+  { name:'SKHynix',   ticker:'000660', person:'taewon',  change:+11.3, period:'3거래일',  ctx:'APEC 젠슨 황 회동에서 HBM 공급 파트너십 공개 재확인' },
+  { name:'광전자',    ticker:'046070', person:'jensen',  change:+447,  period:'누적',     ctx:'GTC 2026 광반도체 핵심 기술 지목 → 2월 대비 4.5배 폭등' },
+  { name:'TSLA',      ticker:'NASDAQ', person:'musk',    change:+12.4, period:'당일',     ctx:'주총 성과 보상안 통과, SpaceX IPO 가능성 언급' },
+  { name:'AMD',       ticker:'NASDAQ', person:'lisa',    change:+9.3,  period:'당일',     ctx:'컴퓨텍스 MI350 AI 칩 공개 — 엔비디아 대항마 기대감' },
+  { name:'MSFT',      ticker:'NASDAQ', person:'altman',  change:+6.2,  period:'당일',     ctx:'GPT-5 출시 발표 — AI 추론 수요 폭증 기대' },
+  { name:'ARM',       ticker:'NASDAQ', person:'masa',    change:+9.1,  period:'5거래일',  ctx:'손정의 1000억달러 투자 재확인, AI 칩 설계 수요 기대' },
+  { name:'ORCL',      ticker:'NYSE',   person:'trump',   change:+7.2,  period:'3거래일',  ctx:'스타게이트 프로젝트 참여사로 지명 → AI 인프라주 급등' },
+  { name:'AAPL',      ticker:'NASDAQ', person:'buffett', change:+3.1,  period:'당일',     ctx:'버핏 주총서 애플 지분 유지 의사 재확인' },
+  { name:'나스닥',    ticker:'지수',   person:'powell',  change:+4.9,  period:'당일',     ctx:'잭슨홀 금리 인하 시사 → S&P500 +3.73%, 나스닥 +4.91% 급등' },
+  { name:'코스피',    ticker:'KRX',    person:'trump',   change:-4.5,  period:'당일',     ctx:'이란 강경 발언 → 코스피 244p 급락, 원/달러 20원 급등' },
+  { name:'WTI유가',   ticker:'선물',   person:'trump',   change:-17.0, period:'월간',     ctx:'이란 종전 MOU 기대 → 5월 한 달간 유가 17% 급락' },
+];
+
+let currentFilter = 'all';
+let chartInstance = null;
+
+function filterPerson(person, btn) {
+  currentFilter = person;
+  document.querySelectorAll('.person-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'chart') renderChart();
+}
+
+function getFiltered(list) {
+  if (currentFilter === 'all') return list;
+  return list.filter(e => e.person === currentFilter);
+}
+
+function renderAll() {
+  renderTimeline();
+  renderStocks();
+  updateStats();
+  if (document.getElementById('tab-chart').classList.contains('active')) renderChart();
+}
+
+function renderTimeline() {
+  const filtered = getFiltered(events);
+  let html = ''; let lastYear = '';
+  filtered.forEach(e => {
+    const year = e.date.slice(0,4);
+    if (year !== lastYear) { html += `<div class="year-divider">${year}</div>`; lastYear = year; }
+    const nb = e.isNew ? '<span class="new-badge">NEW</span>' : '';
+    html += `<div class="event-card">
+      <div class="event-date">${e.date}</div>
+      <div>
+        <span class="person-badge badge-${e.person}">${personMeta[e.person].label}</span>${nb}
+        <div class="event-title">${e.title}</div>
+        <div class="event-desc">${e.desc}</div>
+        <div class="event-tags">${e.tags.map(t=>`<span class="etag">${t}</span>`).join('')}</div>
+      </div>
+      <div class="change-box">
+        <div class="change-val ${e.change>=0?'up':'down'}">${e.change>=0?'+':''}${e.change}%</div>
+        <div class="change-period">${e.period}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('timeline').innerHTML = html || '<div class="empty-state">해당 인물의 이벤트가 없습니다.</div>';
+}
+
+function renderStocks() {
+  const filtered = getFiltered(stockRows);
+  const sorted = [...filtered].sort((a,b) => b.change - a.change);
+  document.getElementById('stock-tbody').innerHTML = sorted.map(r => `
+    <tr>
+      <td><div class="stock-name">${r.name}</div><div class="stock-ticker">${r.ticker}</div></td>
+      <td><span class="ptag ptag-${r.person}">${personMeta[r.person].label}</span></td>
+      <td class="${r.change>=0?'chg-up':'chg-down'}">${r.change>=0?'+':''}${r.change}%</td>
+      <td style="font-size:12px;color:var(--text2);text-align:right">${r.period}</td>
+      <td class="ctx">${r.ctx}</td>
+    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">해당 인물의 종목 데이터가 없습니다.</td></tr>`;
+}
+
+function updateStats() {
+  const filtered = getFiltered(events);
+  if (!filtered.length) {
+    document.getElementById('stat-avg').textContent = '—';
+    document.getElementById('stat-max').textContent = '—';
+    document.getElementById('stat-max-sub').textContent = '—';
+    document.getElementById('stat-count').textContent = '0';
+    return;
+  }
+  const normal = filtered.filter(e => Math.abs(e.change) < 100);
+  const avg = normal.length ? normal.reduce((s,e)=>s+e.change,0)/normal.length : 0;
+  const maxEv = filtered.reduce((m,e) => e.change > m.change ? e : m, filtered[0]);
+  document.getElementById('stat-avg').textContent = (avg>=0?'+':'')+avg.toFixed(1)+'%';
+  document.getElementById('stat-max').textContent = (maxEv.change>=0?'+':'')+maxEv.change+'%';
+  document.getElementById('stat-max-sub').textContent = maxEv.tags[0]+' · '+personMeta[maxEv.person].label;
+  document.getElementById('stat-count').textContent = filtered.length;
+}
+
+function renderChart() {
+  const filtered = getFiltered(stockRows).filter(r => Math.abs(r.change) < 100);
+  // dedupe by name+person, keep max change
+  const deduped = Object.values(
+    filtered.reduce((acc, r) => {
+      const key = r.name + '_' + r.person;
+      if (!acc[key] || Math.abs(r.change) > Math.abs(acc[key].change)) acc[key] = r;
+      return acc;
+    }, {})
+  ).sort((a,b) => b.change - a.change);
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  if (!deduped.length) return;
+
+  chartInstance = new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: deduped.map(r => r.name),
+      datasets: [{
+        data: deduped.map(r => r.change),
+        backgroundColor: deduped.map(r => r.change >= 0 ? '#00d084' : '#ff4d4d'),
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks:{ font:{size:11,family:'monospace'}, color:'#555', autoSkip:false, maxRotation:30 }, grid:{display:false}, border:{color:'rgba(255,255,255,0.05)'} },
+        y: { ticks:{ callback:v=>v+'%', font:{size:11}, color:'#555' }, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.05)'} }
+      }
+    }
+  });
+}
+
+renderAll();
+</script>
+</body>
+</html>
